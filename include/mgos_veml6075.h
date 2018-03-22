@@ -46,7 +46,7 @@ void mgos_veml6075_destroy(struct mgos_veml6075 **sensor);
 /*
  * The sensor will be polled for its light counter registers. If the poll has
  * occured in the last `MGOS_VEML6075_READ_DELAY` seconds, the cached data is
- * used (so as not to repeatedly poll the buss upon subsequent calls).
+ * used (so as not to repeatedly poll the bus upon subsequent calls).
  *
  * The UVA band intensity is returned as a float (0.0 means "no light", higher
  * numbers mean more light was measured).
@@ -56,7 +56,7 @@ float mgos_veml6075_getUVA(struct mgos_veml6075 *sensor);
 /*
  * The sensor will be polled for its light counter registers. If the poll has
  * occured in the last `MGOS_VEML6075_READ_DELAY` seconds, the cached data is
- * used (so as not to repeatedly poll the buss upon subsequent calls).
+ * used (so as not to repeatedly poll the bus upon subsequent calls).
  *
  * The UVB band intensity is returned as a float (0.0 means "no light", higher
  * numbers mean more light was measured).
@@ -66,7 +66,7 @@ float mgos_veml6075_getUVB(struct mgos_veml6075 *sensor);
 /*
  * The sensor will be polled for its light counter registers. If the poll has
  * occured in the last `MGOS_VEML6075_READ_DELAY` seconds, the cached data is
- * used (so as not to repeatedly poll the buss upon subsequent calls).
+ * used (so as not to repeatedly poll the bus upon subsequent calls).
  *
  * Please see https://www.vishay.com/docs/84339/designingveml6075.pdf for
  * details.

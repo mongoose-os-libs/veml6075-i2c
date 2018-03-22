@@ -1,0 +1,25 @@
+author: Pim van Pelt <pim@google.com>
+type: lib
+description: Mongoose OS library for VEML6075
+version: 1.0
+platforms: [esp8266, esp32]
+
+sources:
+  - src
+
+includes:
+  - include
+
+config_schema:
+  - ["veml6075", "o", {title: "VEML6075 settings"}]
+  - ["veml6075.i2caddr", "i", 0x10, {title: "I2C Address"}]
+
+libs:
+  - origin: https://github.com/mongoose-os-libs/i2c
+
+tags:
+  - c
+  - i2c
+  - hw
+
+manifest_version: 2017-09-29

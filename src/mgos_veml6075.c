@@ -20,55 +20,89 @@
 #include "mgos_config.h"
 #include "mgos_i2c.h"
 
-static uint16_t mgos_veml6075_i2c_read16(uint8_t i2caddr, uint8_t reg) {
-  struct mgos_i2c *i2c = mgos_i2c_get_global();
+// Private functions start
+static uint16_t mgos_veml6075_i2c_read16(struct mgos_veml6075 *sensor, uint8_t reg) {
   uint8_t data[2];
   uint16_t value;
   bool ret;
 
-  if (!i2c) {
-    LOG(LL_ERROR, ("No global I2C bus configured"));
+  if (!sensor || !sensor->i2c) {
+    LOG(LL_ERROR, ("Sensor or I2C bus is not configured"));
     return 0;
   }
-  ret = mgos_i2c_write(i2c, i2caddr, &reg, 1, false);
+  ret = mgos_i2c_write(sensor->i2c, sensor->i2caddr, &reg, 1, false);
   if (!ret) {
-    LOG(LL_ERROR, ("I2C=0x%02x reg=%u (0x%02x) write error", i2caddr, reg, reg));
+    LOG(LL_ERROR, ("I2C=0x%02x reg=%u (0x%02x) write error", sensor->i2caddr, reg, reg));
     return 0;
   }
-  ret = mgos_i2c_read(i2c, i2caddr, data, 2, true);
+  ret = mgos_i2c_read(sensor->i2c, sensor->i2caddr, data, 2, true);
   value = (data[1]<<8) | data[0];
   if (!ret) {
-    LOG(LL_ERROR, ("I2C=0x%02x reg=0x%02x val=%u (0x%04x) read error", i2caddr, reg, value, value));
+    LOG(LL_ERROR, ("I2C=0x%02x reg=0x%02x val=%u (0x%04x) read error", sensor->i2caddr, reg, value, value));
     return 0;
   }
-  LOG(LL_DEBUG, ("I2C=0x%02x reg=0x%02x val=%u (0x%04x) read success", i2caddr, reg, value, value));
+  LOG(LL_DEBUG, ("I2C=0x%02x reg=0x%02x val=%u (0x%04x) read success", sensor->i2caddr, reg, value, value));
 
   return value;
 }
 
-static bool mgos_veml6075_i2c_write16(uint8_t i2caddr, uint8_t reg, uint16_t value) {
-  struct mgos_i2c *i2c = mgos_i2c_get_global();
+static bool mgos_veml6075_i2c_write16(struct mgos_veml6075 *sensor, uint8_t reg, uint16_t value) {
   uint8_t data[3];
   bool ret;
 
-  if (!i2c) {
-    LOG(LL_ERROR, ("No global I2C bus configured"));
+  if (!sensor || !sensor->i2c) {
+    LOG(LL_ERROR, ("Sensor or I2C bus is not configured"));
     return 0;
   }
   data[0]=reg;
   data[1]=(uint8_t)(0xFF & (value >> 0));
   data[2]=(uint8_t)(0xFF & (value >> 8));
-  ret = mgos_i2c_write(i2c, i2caddr, data, 3, true);
-  LOG(LL_DEBUG, ("I2C=0x%02x reg=0x%02x val=%u (0x%04x) write %s", i2caddr, reg, value, value, ret?"success":"error"));
-  return ret;
+  ret = mgos_i2c_write(sensor->i2c, sensor->i2caddr, data, 3, true);
+  if (!ret) {
+    LOG(LL_ERROR, ("I2C=0x%02x reg=0x%02x val=%u (0x%04x) write error", sensor->i2caddr, reg, value, value));
+    return false;
+  }
+  LOG(LL_DEBUG, ("I2C=0x%02x reg=0x%02x val=%u (0x%04x) write success", sensor->i2caddr, reg, value, value));
+
+  return true;
 }
 
-struct mgos_veml6075 *mgos_veml6075_create(uint8_t i2caddr) {
+static uint16_t mgos_veml6075_getDevID(struct mgos_veml6075 *sensor) {
+  if (!sensor) return 0;
+  return mgos_veml6075_i2c_read16(sensor, VEML6075_REGISTER_DEVID);
+}
+
+static bool mgos_veml6075_read(struct mgos_veml6075 *sensor) {
+  double now = mg_time();
+
+  if (!sensor) return false;
+
+  if (now - sensor->last_read_time < MGOS_VEML6075_READ_DELAY) {
+    return true;
+  }
+
+  sensor->raw_uva = mgos_veml6075_i2c_read16(sensor, VEML6075_REGISTER_UVA);
+  sensor->raw_uvb = mgos_veml6075_i2c_read16(sensor, VEML6075_REGISTER_UVB);
+  sensor->raw_dark = mgos_veml6075_i2c_read16(sensor, VEML6075_REGISTER_DARK);
+  sensor->raw_vis = mgos_veml6075_i2c_read16(sensor, VEML6075_REGISTER_VIS);
+  sensor->raw_ir = mgos_veml6075_i2c_read16(sensor, VEML6075_REGISTER_IR);
+  LOG(LL_INFO, ("raw_uva=%u, raw_uvb=%u, raw_dark=%u, raw_vis=%u, raw_ir=%u", sensor->raw_uva, sensor->raw_uvb, sensor->raw_dark, sensor->raw_vis, sensor->raw_ir));
+
+  sensor->last_read_time=now;
+
+  return true;
+}
+
+// Private functions end
+
+// Public functions start
+struct mgos_veml6075 *mgos_veml6075_create(struct mgos_i2c *i2c, uint8_t i2caddr) {
   struct mgos_veml6075 *sensor = calloc(1, sizeof(struct mgos_veml6075));
   uint16_t devid = 0;
 
   if (!sensor) return NULL;
   sensor->i2caddr=i2caddr;
+  sensor->i2c=i2c;
   sensor->config=0;
   sensor->config|=VEML6075_CONFIGURATION_SD_OFF;
   sensor->config|=VEML6075_INTEGRATION_100MS;
@@ -82,7 +116,7 @@ struct mgos_veml6075 *mgos_veml6075_create(uint8_t i2caddr) {
   }
 
   // Write config to make sure device is enabled
-  if (!mgos_veml6075_i2c_write16(sensor->i2caddr, VEML6075_REGISTER_CONF, sensor->config)) {
+  if (!mgos_veml6075_i2c_write16(sensor, VEML6075_REGISTER_CONF, sensor->config)) {
     LOG(LL_ERROR, ("Failed to created VEML6075 sensor at I2C address 0x%02x, write error setting conf register", sensor->i2caddr));
     free(sensor);
     return NULL;
@@ -141,11 +175,6 @@ float mgos_veml6075_getUVIndex(struct mgos_veml6075 *sensor) {
   return (uva_weighted + uvb_weighted) / 2.0;
 }
 
-uint16_t mgos_veml6075_getDevID(struct mgos_veml6075 *sensor) {
-  if (!sensor) return 0;
-  return mgos_veml6075_i2c_read16(sensor->i2caddr, VEML6075_REGISTER_DEVID);
-}
-
 uint16_t mgos_veml6075_getRawUVA(struct mgos_veml6075 *sensor) {
   if (!mgos_veml6075_read(sensor)) return 0;
   return sensor->raw_uva;
@@ -171,27 +200,7 @@ uint16_t mgos_veml6075_getRawIRComp(struct mgos_veml6075 *sensor) {
   return sensor->raw_ir;
 }
 
-bool mgos_veml6075_read(struct mgos_veml6075 *sensor) {
-  double now = mg_time();
-
-  if (!sensor) return false;
-
-  if (now - sensor->last_read_time < MGOS_VEML6075_READ_DELAY) {
-    return true;
-  }
-
-  sensor->raw_uva = mgos_veml6075_i2c_read16(sensor->i2caddr, VEML6075_REGISTER_UVA);
-  sensor->raw_uvb = mgos_veml6075_i2c_read16(sensor->i2caddr, VEML6075_REGISTER_UVB);
-  sensor->raw_dark = mgos_veml6075_i2c_read16(sensor->i2caddr, VEML6075_REGISTER_DARK);
-  sensor->raw_vis = mgos_veml6075_i2c_read16(sensor->i2caddr, VEML6075_REGISTER_VIS);
-  sensor->raw_ir = mgos_veml6075_i2c_read16(sensor->i2caddr, VEML6075_REGISTER_IR);
-  LOG(LL_INFO, ("raw_uva=%u, raw_uvb=%u, raw_dark=%u, raw_vis=%u, raw_ir=%u", sensor->raw_uva, sensor->raw_uvb, sensor->raw_dark, sensor->raw_vis, sensor->raw_ir));
-
-  sensor->last_read_time=now;
-
-  return true;
-}
-
 bool mgos_veml6075_i2c_init(void) {
   return true;
 }
+// Public functions end

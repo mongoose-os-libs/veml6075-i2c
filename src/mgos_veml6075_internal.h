@@ -18,6 +18,7 @@
 #define _VEML6075_INTERNAL_H
 
 #include "mgos.h"
+#include "mgos_veml6075.h"
 #include <math.h>
 
 #define VEML6075_DEVID                    (0x26)
@@ -60,24 +61,16 @@ extern "C" {
 #endif
 
 struct mgos_veml6075 {
+  struct mgos_i2c *i2c;
   uint8_t i2caddr;
   uint8_t config;
+
   uint16_t raw_uva, raw_uvb, raw_dark, raw_vis, raw_ir;
   double last_read_time;
 };
 
-struct mgos_veml6075 *mgos_veml6075_create(uint8_t i2caddr);
-void mgos_veml6075_destroy(struct mgos_veml6075 **sensor);
-bool mgos_veml6075_read(struct mgos_veml6075 *sensor);
-float mgos_veml6075_getUVA(struct mgos_veml6075 *sensor);
-float mgos_veml6075_getUVB(struct mgos_veml6075 *sensor);
-float mgos_veml6075_getUVIndex(struct mgos_veml6075 *sensor);
-uint16_t mgos_veml6075_getDevID(struct mgos_veml6075 *sensor);
-uint16_t mgos_veml6075_getRawUVA(struct mgos_veml6075 *sensor);
-uint16_t mgos_veml6075_getRawUVB(struct mgos_veml6075 *sensor);
-uint16_t mgos_veml6075_getRawDark(struct mgos_veml6075 *sensor);
-uint16_t mgos_veml6075_getRawVisComp(struct mgos_veml6075 *sensor);
-uint16_t mgos_veml6075_getRawIRComp(struct mgos_veml6075 *sensor);
+static bool mgos_veml6075_read(struct mgos_veml6075 *sensor);
+static uint16_t mgos_veml6075_getDevID(struct mgos_veml6075 *sensor);
 
 #ifdef __cplusplus
 }

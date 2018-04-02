@@ -18,6 +18,7 @@
 #define _VEML6075_H
 
 #include "mgos.h"
+#include "mgos_i2c.h"
 
 #define MGOS_VEML6075_READ_DELAY (2)
 
@@ -28,12 +29,12 @@ extern "C" {
 struct mgos_veml6075;
 
 /*
- * Initialize a VEML6075 on the master I2C bus at address specified in `i2caddr`
+ * Initialize a VEML6075 on the I2C bus `i2c` at address specified in `i2caddr`
  * parameter (default VEML607 is on address 0x10). The sensor will be polled for
  * its deviceid, upon success a new `struct mgos_veml6075` is allocated and
  * returned. If the device could not be found, NULL is returned.
  */
-struct mgos_veml6075 *mgos_veml6075_create(uint8_t i2caddr);
+struct mgos_veml6075 *mgos_veml6075_create(struct mgos_i2c *i2c, uint8_t i2caddr);
 
 /*
  * Destroy the data structure associated with a VEML6075 device. The reference
@@ -80,6 +81,31 @@ float mgos_veml6075_getUVB(struct mgos_veml6075 *sensor);
  *
  */
 float mgos_veml6075_getUVIndex(struct mgos_veml6075 *sensor);
+
+/*
+ * Return raw counters for light measured in the UVA register.
+ */
+uint16_t mgos_veml6075_getRawUVA(struct mgos_veml6075 *sensor);
+
+/*
+ * Return raw counters for light measured in the UVB register.
+ */
+uint16_t mgos_veml6075_getRawUVB(struct mgos_veml6075 *sensor);
+
+/*
+ * Return raw counters for light measured in the RawDark register.
+ */
+uint16_t mgos_veml6075_getRawDark(struct mgos_veml6075 *sensor);
+
+/*
+ * Return raw counters for light measured in the Visual register.
+ */
+uint16_t mgos_veml6075_getRawVisComp(struct mgos_veml6075 *sensor);
+
+/*
+ * Return raw counters for light measured in the Infra Red register.
+ */
+uint16_t mgos_veml6075_getRawIRComp(struct mgos_veml6075 *sensor);
 
 #ifdef __cplusplus
 }

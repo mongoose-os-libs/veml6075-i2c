@@ -17,7 +17,6 @@
 #include "mgos.h"
 #include "mgos_veml6075.h"
 #include "mgos_veml6075_internal.h"
-#include "mgos_config.h"
 #include "mgos_i2c.h"
 
 // Private functions start
@@ -110,14 +109,14 @@ struct mgos_veml6075 *mgos_veml6075_create(struct mgos_i2c *i2c, uint8_t i2caddr
 
   devid=mgos_veml6075_getDevID(sensor);
   if (devid != VEML6075_DEVID) {
-    LOG(LL_ERROR, ("Failed to created VEML6075 sensor at I2C address 0x%02x, DevID mismatch (got 0x%04x, want 0x%04x)", sensor->i2caddr, devid, VEML6075_DEVID));
+    LOG(LL_ERROR, ("Failed to create VEML6075 sensor at I2C address 0x%02x, DevID mismatch (got 0x%04x, want 0x%04x)", sensor->i2caddr, devid, VEML6075_DEVID));
     free(sensor);
     return NULL;
   }
 
   // Write config to make sure device is enabled
   if (!mgos_veml6075_i2c_write16(sensor, VEML6075_REGISTER_CONF, sensor->config)) {
-    LOG(LL_ERROR, ("Failed to created VEML6075 sensor at I2C address 0x%02x, write error setting conf register", sensor->i2caddr));
+    LOG(LL_ERROR, ("Failed to create VEML6075 sensor at I2C address 0x%02x, write error setting conf register", sensor->i2caddr));
     free(sensor);
     return NULL;
   }

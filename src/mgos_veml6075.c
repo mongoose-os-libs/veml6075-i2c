@@ -85,7 +85,7 @@ static bool mgos_veml6075_read(struct mgos_veml6075 *sensor) {
   sensor->raw_dark = mgos_veml6075_i2c_read16(sensor, VEML6075_REGISTER_DARK);
   sensor->raw_vis = mgos_veml6075_i2c_read16(sensor, VEML6075_REGISTER_VIS);
   sensor->raw_ir = mgos_veml6075_i2c_read16(sensor, VEML6075_REGISTER_IR);
-  LOG(LL_INFO, ("raw_uva=%u, raw_uvb=%u, raw_dark=%u, raw_vis=%u, raw_ir=%u", sensor->raw_uva, sensor->raw_uvb, sensor->raw_dark, sensor->raw_vis, sensor->raw_ir));
+  LOG(LL_DEBUG, ("raw_uva=%u, raw_uvb=%u, raw_dark=%u, raw_vis=%u, raw_ir=%u", sensor->raw_uva, sensor->raw_uvb, sensor->raw_dark, sensor->raw_vis, sensor->raw_ir));
 
   sensor->last_read_time=now;
 

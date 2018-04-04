@@ -72,11 +72,13 @@ static uint16_t mgos_veml6075_getDevID(struct mgos_veml6075 *sensor) {
 }
 
 static bool mgos_veml6075_read(struct mgos_veml6075 *sensor) {
-  double now = mg_time();
+  double start = mg_time();
 
-  if (!sensor) return false;
+  if (!sensor || !sensor->i2c) return false;
+  sensor->stats.read++;
 
-  if (now - sensor->last_read_time < MGOS_VEML6075_READ_DELAY) {
+  if (start - sensor->stats.last_read_time < MGOS_VEML6075_READ_DELAY) {
+    sensor->stats.read_success_cached++;
     return true;
   }
 
@@ -85,10 +87,11 @@ static bool mgos_veml6075_read(struct mgos_veml6075 *sensor) {
   sensor->raw_dark = mgos_veml6075_i2c_read16(sensor, VEML6075_REGISTER_DARK);
   sensor->raw_vis = mgos_veml6075_i2c_read16(sensor, VEML6075_REGISTER_VIS);
   sensor->raw_ir = mgos_veml6075_i2c_read16(sensor, VEML6075_REGISTER_IR);
+
   LOG(LL_DEBUG, ("raw_uva=%u, raw_uvb=%u, raw_dark=%u, raw_vis=%u, raw_ir=%u", sensor->raw_uva, sensor->raw_uvb, sensor->raw_dark, sensor->raw_vis, sensor->raw_ir));
-
-  sensor->last_read_time=now;
-
+  sensor->stats.read_success++;
+  sensor->stats.read_success_usecs+=1000000*(mg_time()-start);
+  sensor->stats.last_read_time=start;
   return true;
 }
 
@@ -102,10 +105,9 @@ struct mgos_veml6075 *mgos_veml6075_create(struct mgos_i2c *i2c, uint8_t i2caddr
   if (!sensor) return NULL;
   sensor->i2caddr=i2caddr;
   sensor->i2c=i2c;
-  sensor->config=0;
+  memset(sensor, 0, sizeof(struct mgos_veml6075));
   sensor->config|=VEML6075_CONFIGURATION_SD_OFF;
   sensor->config|=VEML6075_INTEGRATION_100MS;
-  sensor->last_read_time=0;
 
   devid=mgos_veml6075_getDevID(sensor);
   if (devid != VEML6075_DEVID) {
@@ -197,6 +199,14 @@ uint16_t mgos_veml6075_getRawVisComp(struct mgos_veml6075 *sensor) {
 uint16_t mgos_veml6075_getRawIRComp(struct mgos_veml6075 *sensor) {
   if (!mgos_veml6075_read(sensor)) return 0;
   return sensor->raw_ir;
+}
+
+bool mgos_veml6075_getStats(struct mgos_veml6075 *sensor, struct mgos_veml6075_stats *stats) {
+  if (!sensor || !stats)
+    return false;
+
+  memcpy((void *)stats, (const void *)&sensor->stats, sizeof(struct mgos_veml6075_stats));
+  return true;
 }
 
 bool mgos_veml6075_i2c_init(void) {

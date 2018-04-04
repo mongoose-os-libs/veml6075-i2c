@@ -27,6 +27,14 @@ extern "C" {
 #endif
 
 struct mgos_veml6075;
+struct mgos_veml6075_stats {
+  double last_read_time;         // value of mg_time() upon last call to _read()
+  uint32_t read;                 // calls to _read()
+  uint32_t read_success;         // successful _read()
+  uint32_t read_success_cached;  // calls to _read() which were cached
+  // Note: read_errors := read - read_success - read_success_cached
+  double read_success_usecs;     // time spent in successful uncached _read()
+};
 
 /*
  * Initialize a VEML6075 on the I2C bus `i2c` at address specified in `i2caddr`
@@ -106,6 +114,16 @@ uint16_t mgos_veml6075_getRawVisComp(struct mgos_veml6075 *sensor);
  * Return raw counters for light measured in the Infra Red register.
  */
 uint16_t mgos_veml6075_getRawIRComp(struct mgos_veml6075 *sensor);
+
+/*
+ * Returns the running statistics on the sensor interaction, the user provides
+ * a pointer to a `struct mgos_veml6075_stats` object, which is filled in by this
+ * call.
+ *
+ * Upon success, true is returned. Otherwise, false is returned, in which case
+ * the contents of `stats` is undetermined.
+ */
+bool mgos_veml6075_getStats(struct mgos_veml6075 *sensor, struct mgos_veml6075_stats *stats);
 
 #ifdef __cplusplus
 }

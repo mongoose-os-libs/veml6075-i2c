@@ -64,9 +64,9 @@ struct mgos_veml6075 {
   struct mgos_i2c *i2c;
   uint8_t i2caddr;
   uint8_t config;
+  struct mgos_veml6075_stats stats;
 
   uint16_t raw_uva, raw_uvb, raw_dark, raw_vis, raw_ir;
-  double last_read_time;
 };
 
 static bool mgos_veml6075_read(struct mgos_veml6075 *sensor);

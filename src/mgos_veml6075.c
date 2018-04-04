@@ -103,9 +103,9 @@ struct mgos_veml6075 *mgos_veml6075_create(struct mgos_i2c *i2c, uint8_t i2caddr
   uint16_t devid = 0;
 
   if (!sensor) return NULL;
+  memset(sensor, 0, sizeof(struct mgos_veml6075));
   sensor->i2caddr=i2caddr;
   sensor->i2c=i2c;
-  memset(sensor, 0, sizeof(struct mgos_veml6075));
   sensor->config|=VEML6075_CONFIGURATION_SD_OFF;
   sensor->config|=VEML6075_INTEGRATION_100MS;
 

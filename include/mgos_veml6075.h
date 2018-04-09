@@ -20,7 +20,7 @@
 #include "mgos.h"
 #include "mgos_i2c.h"
 
-#define MGOS_VEML6075_READ_DELAY (2)
+#define MGOS_VEML6075_READ_DELAY    (2)
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,12 +28,12 @@ extern "C" {
 
 struct mgos_veml6075;
 struct mgos_veml6075_stats {
-  double last_read_time;         // value of mg_time() upon last call to _read()
+  double   last_read_time;       // value of mg_time() upon last call to _read()
   uint32_t read;                 // calls to _read()
   uint32_t read_success;         // successful _read()
   uint32_t read_success_cached;  // calls to _read() which were cached
   // Note: read_errors := read - read_success - read_success_cached
-  double read_success_usecs;     // time spent in successful uncached _read()
+  double   read_success_usecs;   // time spent in successful uncached _read()
 };
 
 /*
@@ -130,4 +130,3 @@ bool mgos_veml6075_getStats(struct mgos_veml6075 *sensor, struct mgos_veml6075_s
 #endif
 
 #endif // _VEML6075_H
-

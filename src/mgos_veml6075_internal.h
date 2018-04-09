@@ -49,24 +49,24 @@
 // Taken from application note:
 // http://www.vishay.com/docs/84339/designingveml6075.pdf
 
-#define VEML6075_UVI_UVA_VIS_COEFF (2.22)
-#define VEML6075_UVI_UVA_IR_COEFF  (1.33)
-#define VEML6075_UVI_UVB_VIS_COEFF (2.95)
-#define VEML6075_UVI_UVB_IR_COEFF  (1.74)
-#define VEML6075_UVI_UVA_RESPONSE (1.0 / 909.0)
-#define VEML6075_UVI_UVB_RESPONSE (1.0 / 800.0)
+#define VEML6075_UVI_UVA_VIS_COEFF    (2.22)
+#define VEML6075_UVI_UVA_IR_COEFF     (1.33)
+#define VEML6075_UVI_UVB_VIS_COEFF    (2.95)
+#define VEML6075_UVI_UVB_IR_COEFF     (1.74)
+#define VEML6075_UVI_UVA_RESPONSE     (1.0 / 909.0)
+#define VEML6075_UVI_UVB_RESPONSE     (1.0 / 800.0)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct mgos_veml6075 {
-  struct mgos_i2c *i2c;
-  uint8_t i2caddr;
-  uint8_t config;
+  struct mgos_i2c *          i2c;
+  uint8_t                    i2caddr;
+  uint8_t                    config;
   struct mgos_veml6075_stats stats;
 
-  uint16_t raw_uva, raw_uvb, raw_dark, raw_vis, raw_ir;
+  uint16_t                   raw_uva, raw_uvb, raw_dark, raw_vis, raw_ir;
 };
 
 static bool mgos_veml6075_read(struct mgos_veml6075 *sensor);
@@ -77,4 +77,3 @@ static uint16_t mgos_veml6075_getDevID(struct mgos_veml6075 *sensor);
 #endif
 
 #endif // _VEML6075_INTERNAL_H
-

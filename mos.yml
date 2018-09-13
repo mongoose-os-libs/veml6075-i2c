@@ -21,5 +21,6 @@ tags:
   - c
   - i2c
   - hw
+  - docs:drivers:VEML6075 I2C
 
 manifest_version: 2017-09-29
